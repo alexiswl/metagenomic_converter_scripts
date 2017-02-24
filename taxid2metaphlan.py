@@ -11,7 +11,7 @@ import pandas as pd
 ncbi = NCBITaxa()
 
 # Define the global variables (constants)
-FILE_TYPE_CHOICES = ("csv", "tsv")
+FILE_TYPE_CHOICES = ["csv", "tsv"]
 SEP_TYPES = {"csv":",", "tsv":"\t"}
 
 # Define the standard ranks that we wish to keep of each classification.
@@ -20,43 +20,56 @@ SEP_TYPES = {"csv":",", "tsv":"\t"}
 STANDARD_RANKS = ("kingdom", "phylum", "class", "order", "family", "genus", "species", "superkingdom")
 
 # Semi-global variables (yet to be defined)
-parser = ""
+args = "" 
 
 
 def import_arguments():
-    global parser
+    global args 
     # Import the argument, will either be a tax_id or a reference to a file.
     parser = argparse.ArgumentParser(description="Input a taxid and convert it to a metaphlan output" +
                                                  "Can also parse in a tsv or csv and specify the column to"
                                                  "select as the taxid.")
 
     # What type of argument will it be, a single integer or a file?
-    input_type = parser.add_mutually_exclusive_group()
-    input_type.add_argument("tax_id", type=int,
-                            help="input a single tax id")
-    input_type.add_argument("--file", type=str,
-                            help="path to file")
+    parser.add_argument("mode", choices=['bash', 'file'], 
+                         help="are your taxid inputs in a csv/tsv file or as space separated values on the command line?")
+    parser.add_argument('taxids', nargs='*')
+
 
     # If it's a type of file, csv or tsv
-    parser.add_argument("--file_type", type="str",
-                        help="what type of file is this?",
-                        choices=file_type_choices, default="csv")
-    parser.add_argument("--column", type="int",
-                        help="Which column represents the taxids?",
-                        default=0)
+    parser.add_argument("--file_type", #type="str",
+                       help="what type of file is this?", 
+                       choices=FILE_TYPE_CHOICES)
+    parser.add_argument("--column", #type="int",	
+                        help="Which column represents the taxids? (where the first column is the 0th column)")
 
     # Parse the arguments into the script.
-    parser.parse_args()
+    args = parser.parse_args()
+    args_checker(args)
 
 
+def args_checker(args):
+	if args.mode == "bash" and args.file_type is not None:
+		sys.exit("filetype has been defined and bash mode is on, please change mode to 'file'")
+	if args.mode == "bash" and args.column is not None:
+		sys.exit("column has been defined and bash mode is on, please change mode to 'file'")
+	if args.mode == "bash":
+		for taxid in args.taxids:
+			try:
+				taxid_as_int = int(taxid)
+			except ValueError:
+				sys.exit("%s is not an int. Exiting script." % taxid)
+		
+		
 def run_taxid():
     # Is it just a single taxid or is it a csv/tsv with a specific column for tax ids?
-    if parser.taxid:
-        metaphlan_line = taxid2metaphlan(taxid)
-        print(metaphlan_line)
+    if args.mode == "bash":
+	for taxid in args.taxids:
+        	metaphlan_line = taxid2metaphlan(taxid)
+        	print(metaphlan_line)
     else:
-        taxids = pd.DataFrame.read_csv(parser.file, sep=sep_types[parser.file_type],
-                                   usecols=parser.column)
+        taxids = pd.DataFrame.read_csv(args.file, sep=sep_types[args.file_type],
+                                       usecols=args.column)
         for taxid in taxids:
             metaphlan_line = taxid2metaphlan(taxid)
             print(metaphlan_line)
