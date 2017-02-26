@@ -17,7 +17,8 @@ SEP_TYPES = {"csv":",", "tsv":"\t"}
 # Define the standard ranks that we wish to keep of each classification.
 # We put superkingdom at the end as a cheeky way of converting the superkingdom
 # class to kingdom in the output format.
-STANDARD_RANKS = ("kingdom", "phylum", "class", "order", "family", "genus", "species", "superkingdom")
+STANDARD_RANKS = ("superkingdom", "kingdom", "phylum", "class", "order", "family", "genus", "species")
+
 
 # Semi-global variables (yet to be defined)
 args = "" 
@@ -107,9 +108,9 @@ def taxid2metaphlan(tax_id):
     # Now filter out those that are not within the standard_ranks
     lineages_tmp = []
     for lineage in lineages:
-        rank = ncbi.get_rank([lineage]).values()[0]
+        rank = ncbi.get_rank([lineage]).values()[0]		
         if rank in STANDARD_RANKS:
-            lineages_tmp.append(lineage)
+            lineages_tmp.append(lineage) 
     lineages = lineages_tmp
     name_lineages = []
 
@@ -118,8 +119,11 @@ def taxid2metaphlan(tax_id):
         name_lineages.append(ncbi.get_taxid_translator([lineage]).values()[0])
 
     # Run through each of the standard ranks with the tree node.
-    for lineage, standard in zip(name_lineages, STANDARD_RANKS):
-        metaphlan_lineage.append(standard[0] + "__" + lineage)
+    for lineage, name_lineage in zip(lineages, name_lineages):
+	rank = ncbi.get_rank([lineage]).values()[0]
+	if is_bac(name_lineage):
+		rank = "kingdom"	
+        metaphlan_lineage.append(rank[0] + "__" + name_lineage)
 
     # Join tree nodes with the pipe symbol
     metaphlan_line = '|'.join(metaphlan_lineage)
@@ -127,6 +131,12 @@ def taxid2metaphlan(tax_id):
     # Output in metaphlan format
     return(metaphlan_line)
 
+
+def is_bac(rank_0):	
+	# Grabs the first id from rank to check if bacteria
+	if rank_0 == "Bacteria":
+		return True
+	return False
 
 def main():
     # Import the arguments
