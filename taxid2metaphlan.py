@@ -59,8 +59,12 @@ def args_checker(args):
 				taxid_as_int = int(taxid)
 			except ValueError:
 				sys.exit("%s is not an int. Exiting script." % taxid)
-		
-		
+	if args.mode == "file" and args.file_type is None:
+		sys.exit("file mode is on and filetype has not been specified")
+	if args.mode == "file" and args.column is None:
+		sys.exit("file mode is on and column is not specified")
+
+
 def run_taxid():
     # Is it just a single taxid or is it a csv/tsv with a specific column for tax ids?
     if args.mode == "bash":
@@ -68,11 +72,11 @@ def run_taxid():
         	metaphlan_line = taxid2metaphlan(taxid)
         	print(metaphlan_line)
     else:
-        taxids = pd.DataFrame.read_csv(args.file, sep=sep_types[args.file_type],
-                                       usecols=args.column)
-        for taxid in taxids:
-            metaphlan_line = taxid2metaphlan(taxid)
-            print(metaphlan_line)
+	for taxid_file in args.taxids:
+        	taxids = pd.read_table(taxid_file, sep=SEP_TYPES[args.file_type], usecols=[int(args.column)], header=None)
+        	for index, taxid in taxids.iterrows():		
+            		metaphlan_line = taxid2metaphlan(taxid[0])
+            		print(metaphlan_line)
 
 
 def taxid2metaphlan(tax_id):
