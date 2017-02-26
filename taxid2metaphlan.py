@@ -40,8 +40,11 @@ def import_arguments():
     parser.add_argument("--file_type", #type="str",
                        help="what type of file is this?", 
                        choices=FILE_TYPE_CHOICES)
-    parser.add_argument("--column", #type="int",	
+    parser.add_argument("--column",	
                         help="Which column represents the taxids? (where the first column is the 0th column)")
+    parser.add_argument("--header",
+			help="Does the file contain a header? Default = no",
+			default=False, action='store_true')
 
     # Parse the arguments into the script.
     args = parser.parse_args()
@@ -49,20 +52,32 @@ def import_arguments():
 
 
 def args_checker(args):
+	# Check to ensure that switches make logical sense
 	if args.mode == "bash" and args.file_type is not None:
 		sys.exit("filetype has been defined and bash mode is on, please change mode to 'file'")
 	if args.mode == "bash" and args.column is not None:
 		sys.exit("column has been defined and bash mode is on, please change mode to 'file'")
+	
+	# Ensure that each taxid present is of an integer value
 	if args.mode == "bash":
 		for taxid in args.taxids:
 			try:
 				taxid_as_int = int(taxid)
 			except ValueError:
 				sys.exit("%s is not an int. Exiting script." % taxid)
+	
+	# Ensure that if file mode is on, that the file type has been specified
 	if args.mode == "file" and args.file_type is None:
 		sys.exit("file mode is on and filetype has not been specified")
+	# Ensure that if file mode is on, that the column number has been specified
 	if args.mode == "file" and args.column is None:
 		sys.exit("file mode is on and column is not specified")
+
+	# Set the header number if the header switch has been enabled
+	if args.header:
+		args.header=0
+	else:
+		args.header=None
 
 
 def run_taxid():
@@ -73,7 +88,7 @@ def run_taxid():
         	print(metaphlan_line)
     else:
 	for taxid_file in args.taxids:
-        	taxids = pd.read_table(taxid_file, sep=SEP_TYPES[args.file_type], usecols=[int(args.column)], header=None)
+        	taxids = pd.read_table(taxid_file, sep=SEP_TYPES[args.file_type], usecols=[int(args.column)], header=args.header)
         	for index, taxid in taxids.iterrows():		
             		metaphlan_line = taxid2metaphlan(taxid[0])
             		print(metaphlan_line)
