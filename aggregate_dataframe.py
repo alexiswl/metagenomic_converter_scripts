@@ -21,6 +21,7 @@ taxa    freq
 # Import pandas and argparse libraries. Can you name a greater pair? I'll wait.
 import argparse
 import pandas as pd
+
 # Import the still very important but taken for granted sys library
 import sys
 
@@ -37,16 +38,21 @@ def import_arguments():
 
     parser = argparse.ArgumentParser(description="Input a tsv or csv file" +
                                      " and specify the column(s) you wish to aggregate.")
-
+    # Where's the file?
     parser.add_argument("--input_file", help="/path/to/dataframe")
+    # Delimiter type
     parser.add_argument("--input_delimiter", help="what type of file is the input?", choices=FILE_TYPE_CHOICES,
                         default="csv")
     parser.add_argument("--output_delimiter", help="what type of file is the output", choices=FILE_TYPE_CHOICES,
                         default="csv")
+    # Key columns (generally the taxid)
     parser.add_argument("--key_columns", help="Names of the columns would you like to aggregate by. " +
                         "Multiple columns should be separated by commas")
+    # Value columns (generally the frequency)
     parser.add_argument("--value_columns", help="Names of the columns would you like to aggregate?" +
                         "Multiple columns should be separated by commas")
+
+    # A file should contain a header, if it doesn't, you'll need to parse in the names
     parser.add_argument("--header", help="Does this file contain a header? Default = no",
                         default=None, action='store_true')
     parser.add_argument("--names", help="Names of the columns you wish to pass in to the dataframe " +
@@ -55,6 +61,7 @@ def import_arguments():
     # Parse the arguments into the script
     args = parser.parse_args()
 
+    # Check that the arguments are logical
     args_checker(parser)
 
 
