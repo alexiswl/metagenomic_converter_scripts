@@ -81,13 +81,13 @@ def args_checker(args):
 		args.header=None
 
 
-def run_taxid():
+def run_taxid2metaphlan():
     # Is it just a single taxid or is it a csv/tsv with a specific column for tax ids?
     if args.mode == "bash":
 	for taxid in args.taxids:
         	metaphlan_line = taxid2metaphlan(taxid)
         	print(metaphlan_line)
-    else:
+    else:  # args.mode is a csv or tsv file
 	for taxid_file in args.taxids:
         	taxids = pd.read_table(taxid_file, sep=SEP_TYPES[args.file_type], usecols=[int(args.column)], header=args.header)
         	for index, taxid in taxids.iterrows():		
@@ -143,6 +143,6 @@ def main():
     import_arguments()
 
     # Output the tax id
-    run_taxid()
+    run_taxid2metaphlan()
 
 main()
