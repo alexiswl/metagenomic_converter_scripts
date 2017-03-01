@@ -3,25 +3,25 @@
 # Not strictly a metagenomic script, but a useful tool to aggregate a tsv file.
 
 # Let's say you have the following input:
-'''
+"""
 taxa   freq
  225   52
   34   25
   43   40
  225   15
-'''
 
-# This will be converted to:
-'''
+This will be converted to:
+
 taxa    freq
  225      67
   34      25
   43      40
-'''
+"""
 
-# Import pandas and argparse. Can you name a greater pair? I'll wait.
+# Import pandas and argparse libraries. Can you name a greater pair? I'll wait.
 import argparse
 import pandas as pd
+# Import the still very important but taken for granted sys library
 import sys
 
 # Set global arguments
