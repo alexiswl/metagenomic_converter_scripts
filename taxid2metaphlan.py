@@ -103,7 +103,7 @@ def taxid2metaphlan(tax_id):
     try:
         lineages = ncbi.get_lineage(tax_id)
     except ValueError:  # Depending on which database you use, some tax ids will not be found.
-        sys.exit(tax_id + "not found in database")
+        sys.stderr.write(tax_id + "not found in database\n")
 
     # Now filter out those that are not within the standard_ranks
     lineages_tmp = []
