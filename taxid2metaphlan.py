@@ -12,7 +12,7 @@ ncbi = NCBITaxa()
 
 # Define the global variables (constants)
 FILE_TYPE_CHOICES = ["csv", "tsv"]
-SEP_TYPES = {"csv":",", "tsv":"\t"}
+SEP_TYPES = {"csv": ",", "tsv": "\t"}
 
 # Define the standard ranks that we wish to keep of each classification.
 # We put superkingdom at the end as a cheeky way of converting the superkingdom
@@ -33,11 +33,14 @@ def import_arguments():
 
     # What type of argument will it be, a single integer or a file?
     parser.add_argument("mode", choices=['bash', 'file'],
-                        help="are your taxid inputs in a csv/tsv file or as space separated values on the command line?")
+                        help="are your taxid inputs in a csv/tsv file" +
+                        " or as space separated values on the command line?")
+
+    # Nargs = * means that we can have multiple taxids present on the command line
     parser.add_argument('taxids', nargs='*')
 
     # If it's a type of file, csv or tsv
-    parser.add_argument("--file_type", #type="str",
+    parser.add_argument("--file_type",
                         help="what type of file is this?",
                         choices=FILE_TYPE_CHOICES)
     parser.add_argument("--column",
@@ -48,10 +51,10 @@ def import_arguments():
 
     # Parse the arguments into the script.
     args = parser.parse_args()
-    args_checker(args)
+    args_checker()
 
 
-def args_checker(args):
+def args_checker():
     # Check to ensure that switches make logical sense
     if args.mode == "bash" and args.file_type is not None:
         sys.exit("filetype has been defined and bash mode is on, please change mode to 'file'")
@@ -62,7 +65,7 @@ def args_checker(args):
     if args.mode == "bash":
         for taxid in args.taxids:
             try:
-                taxid_as_int = int(taxid)
+                taxid_as_int = int(taxid)  # test to see if taxid can be converted to an int
             except ValueError:
                 sys.exit("%s is not an int. Exiting script." % taxid)
 
@@ -75,9 +78,9 @@ def args_checker(args):
 
     # Set the header number if the header switch has been enabled
     if args.header:
-        args.header=0
+        args.header = 0
     else:
-        args.header=None
+        args.header = None
 
 
 def run_taxid2metaphlan():
@@ -128,7 +131,7 @@ def taxid2metaphlan(tax_id):
     metaphlan_line = '|'.join(metaphlan_lineage)
 
     # Output in metaphlan format
-    return(metaphlan_line)
+    return metaphlan_line
 
 
 def is_bac(rank_0):
@@ -136,6 +139,7 @@ def is_bac(rank_0):
     if rank_0 == "Bacteria":
         return True
     return False
+
 
 def main():
     # Import the arguments
