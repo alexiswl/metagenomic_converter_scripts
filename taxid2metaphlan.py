@@ -105,7 +105,8 @@ def taxid2metaphlan(tax_id):
     try:
         lineages = ncbi.get_lineage(tax_id)
     except ValueError:  # Depending on which database you use, some tax ids will not be found.
-        sys.stderr.write(tax_id + "not found in database\n")
+        sys.stderr.write(str(tax_id) + "not found in database\n")
+	return
 
     # Now filter out those that are not within the standard_ranks 
     # Also determine if there exists the subspecies - must be put in manually - as classed as 'no_rank'
