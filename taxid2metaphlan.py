@@ -48,6 +48,7 @@ def import_arguments():
     parser.add_argument("--header",
                         help="Does the file contain a header? Default = no",
                         default=False, action='store_true')
+    parser.add_argument("--names", help="list the names of the file, split with commas")
 
     # Parse the arguments into the script.
     args = parser.parse_args()
@@ -91,10 +92,13 @@ def run_taxid2metaphlan():
             print(metaphlan_line)
     else:  # args.mode is a csv or tsv file
         for taxid_file in args.taxids:
-            taxids = pd.read_table(taxid_file, sep=SEP_TYPES[args.file_type], usecols=[int(args.column)], header=args.header)
-            for index, taxid in taxids.iterrows():
-                metaphlan_line = taxid2metaphlan(taxid[0])
-                print(metaphlan_line)
+	    if args.names is not None:
+            	taxids = pd.read_table(taxid_file, sep=SEP_TYPES[args.file_type], header=args.header, names=args.names.split(","))
+	    else:
+		taxids = pd.read_table(taxid_file, sep=SEP_TYPES[args.file_type], header=args.header)
+            for index, taxid in taxids.iterrows():	
+                metaphlan_line = taxid2metaphlan(taxid['taxid'])
+                print(metaphlan_line + "\t" + str(taxid['freq']))
 
 
 def taxid2metaphlan(tax_id):
