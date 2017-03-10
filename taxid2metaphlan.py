@@ -107,16 +107,21 @@ def taxid2metaphlan(tax_id):
     except ValueError:  # Depending on which database you use, some tax ids will not be found.
         sys.stderr.write(tax_id + "not found in database\n")
 
-    # Now filter out those that are not within the standard_ranks
+    # Now filter out those that are not within the standard_ranks 
+    # Also determine if there exists the subspecies - must be put in manually - as classed as 'no_rank'
     lineages_tmp = []
-    for lineage in lineages:
+    subspecies_level = None
+    for index, lineage in enumerate(lineages):
         rank = ncbi.get_rank([lineage]).values()[0]
         if rank in STANDARD_RANKS:
             lineages_tmp.append(lineage)
-    lineages = lineages_tmp
-    name_lineages = []
+	if rank == "species" and len(lineages) != index + 1:  # Make sure species isn't the last level
+	   subspecies_level = index + 1  # Subspecies will be the level after species.
+    	   lineages_tmp.append(lineages[subspecies_level])
+    lineages = lineages_tmp 
 
     # Convert the tax ids to scientific names at that node in the tree.
+    name_lineages = []
     for lineage in lineages:
         name_lineages.append(ncbi.get_taxid_translator([lineage]).values()[0])
 
@@ -124,8 +129,11 @@ def taxid2metaphlan(tax_id):
     for lineage, name_lineage in zip(lineages, name_lineages):
         rank = ncbi.get_rank([lineage]).values()[0]
         if is_bac(name_lineage):
-            rank = "kingdom"
-        metaphlan_lineage.append(rank[0] + "__" + name_lineage)
+            rank = "kingdom"  # We change superkingdom to kingdom when dealing with bacteria
+	if rank == "no rank":  # Subspecies
+	    rank = "subspecies"
+	# First letter of rank. double underscore, name at taxid: s__Homo sapien
+        metaphlan_lineage.append(rank[0] + "__" + name_lineage) 
 
     # Join tree nodes with the pipe symbol
     metaphlan_line = '|'.join(metaphlan_lineage)

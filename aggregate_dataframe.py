@@ -21,6 +21,7 @@ taxa    freq
 # Import pandas and argparse libraries. Can you name a greater pair? I'll wait.
 import argparse
 import pandas as pd
+import numpy as np
 
 # Import the still very important but taken for granted sys library
 import sys
@@ -72,21 +73,32 @@ def args_checker(parser):
 
 
 def import_dataframe():
-    df = pd.read_table(args.input_file, sep=SEP_TYPES[args.input_delimiter], header=args.header)
-    return df
+	if args.header:
+    		df = pd.read_table(args.input_file, sep=SEP_TYPES[args.input_delimiter], header=args.header)
+	else:  # Names
+		df = pd.read_table(args.input_file, sep=SEP_TYPES[args.input_delimiter], header=None, names=args.names.split(","))
+	return df
 
 
 def aggregate_dataframe():
     df = import_dataframe()
-    key_columns = args.keys.split(",")
-    value_columns = args.columns.split(",")
+    print(df)
+    key_columns = args.key_columns.split(",") 
+
+    value_columns = args.value_columns.split(",")
     value_columns_dict = {}
+
     # Create value_columns_dict:
     for column in value_columns:
-        value_columns_dict[column] = "sum"
+       	value_columns_dict[column] = "sum"
+	
+    	print(key_columns)
+    	print(value_columns)
 
     # Create the aggregate dataframe
-    output_df = df.groupby(key_columns).agg({value_columns})
+    print(list(df.groupby([key for key in key_columns])))
+    output_df = df.groupby([key for key in key_columns]).aggregate(np.sum)
+    #output_df = df.groupby([key for key in key_columns]).agg(value_columns)
     output_df.to_csv(sys.stdout, sep=SEP_TYPES[args.output_delimiter])
 
 
